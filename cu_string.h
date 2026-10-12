@@ -9,32 +9,34 @@ typedef struct
 {
     long long length;
     char* data;
-} cu_string;
+} cu_string, string, CU_String, String;
 
 CU_INTERNAL long long cu_cstring_length           (const char      *cstring);
-CU_INTERNAL char*     cu_cstring_copy             (const char      *cstring, long long        length);
-CU_INTERNAL cu_string cu_string_allocate          (const char      *cstring, long long        length);
+CU_INTERNAL char*     cu_cstring_copy             (const char      *cstring,   long long       length);
+CU_INTERNAL cu_string cu_string_allocate          (const char      *cstring,   long long       length);
 CU_INTERNAL void      cu_string_free              (      cu_string *string);
-CU_INTERNAL long long cu_string_set_data          (      cu_string *string,  const char      *new_data,       long long new_data_length);
+CU_INTERNAL long long cu_string_set_data          (      cu_string *string,    const char     *new_data,       long long   new_data_length);
 CU_INTERNAL char*     cu_string_get_data          (      cu_string  string);
 CU_INTERNAL char*     cu_string_copy_data         (      cu_string  string);
 CU_INTERNAL cu_string cu_string_copy              (const cu_string  string);
-CU_INTERNAL long long cu_string_index_of          (const cu_string  string,  const cu_string  substring);
-CU_INTERNAL cu_string cu_string_substring         (const cu_string  string,  long long        start_index,    long long   substring_length);
-CU_INTERNAL char*     cu_cstring_substring        (const char      *cstring, long long        cstring_length, long long   start_index,      long long csubstring_length);
-CU_INTERNAL long long cu_cstring_index_of         (const char      *string,  long long        string_length,  const char *substring,        long long substring_length);
-CU_INTERNAL int       cu_cstring_is_lowercase     (const char      *cstring, long long        length);
-CU_INTERNAL int       cu_cstring_is_uppercase     (const char      *cstring, long long        length);
-CU_INTERNAL int       cu_cstring_to_lowercase     (      char     **cstring, long long        length);
-CU_INTERNAL int       cu_cstring_to_uppercase     (      char     **cstring, long long        length);
-CU_INTERNAL char*     cu_cstring_to_lowercase_copy(      char      *cstring, long long        length);
-CU_INTERNAL char*     cu_cstring_to_uppercase_copy(      char      *cstring, long long        length);
-CU_INTERNAL int       cu_string_to_lowercase      (      cu_string *string);
-CU_INTERNAL int       cu_string_to_uppercase      (      cu_string *string);
+CU_INTERNAL long long cu_string_index_of          (const cu_string  string,    const cu_string substring);
+CU_INTERNAL cu_string cu_string_substring         (const cu_string  string,    long long       start_index,    long long   substring_length);
+CU_INTERNAL char*     cu_cstring_substring        (const char      *cstring,   long long       cstring_length, long long   start_index,      long long csubstring_length);
+CU_INTERNAL long long cu_cstring_index_of         (const char      *string,    long long       string_length,  const char *substring,        long long substring_length);
+CU_INTERNAL int       cu_cstring_compare          (const char      *cstring_1, const char     *cstring_2,      long long   length);
+CU_INTERNAL long long cu_cstring_is_lowercase     (const char      *cstring,   long long       length);
+CU_INTERNAL long long cu_cstring_is_uppercase     (const char      *cstring,   long long       length);
+CU_INTERNAL long long cu_cstring_to_lowercase     (      char     **cstring,   long long       length);
+CU_INTERNAL long long cu_cstring_to_uppercase     (      char     **cstring,   long long       length);
+CU_INTERNAL char*     cu_cstring_to_lowercase_copy(      char      *cstring,   long long       length);
+CU_INTERNAL char*     cu_cstring_to_uppercase_copy(      char      *cstring,   long long       length);
+CU_INTERNAL int       cu_string_compare           (const cu_string  string_1,  const cu_string string_2,       long long   length);
+CU_INTERNAL long long cu_string_is_lowercase      (      cu_string  string);
+CU_INTERNAL long long cu_string_is_uppercase      (      cu_string  string);
+CU_INTERNAL long long cu_string_to_lowercase      (      cu_string *string);
+CU_INTERNAL long long cu_string_to_uppercase      (      cu_string *string);
 CU_INTERNAL cu_string cu_string_to_lowercase_copy (      cu_string  string);
 CU_INTERNAL cu_string cu_string_to_uppercase_copy (      cu_string  string);
-CU_INTERNAL int       cu_string_is_lowercase      (      cu_string  string);
-CU_INTERNAL int       cu_string_is_uppercase      (      cu_string  string);
 
 #define CU_STRING_IMPLEMENTATION
 #ifdef CU_STRING_IMPLEMENTATION
@@ -84,7 +86,7 @@ cu_string cu_string_copy(const cu_string string)
 
 long long cu_string_set_data(cu_string *string, const char *new_data, long long new_data_length)
 {
-    if (string == NULL || new_data == NULL) return 0;
+    if (string == NULL) return 0;
     if (string->data != NULL) free(string->data);
     string->data = cu_cstring_copy(new_data, new_data_length);
     string->length = new_data_length;
@@ -153,28 +155,29 @@ cu_string cu_string_substring(const cu_string string, long long start_index, lon
     return substring;
 }
 
-int cu_cstring_to_lowercase(char **cstring, long long length)
+long long cu_cstring_to_lowercase(char **cstring, long long length)
 {
-    if (cstring == NULL) return 0;
-    for (long long i = 0; i < length; i++)
+    if (cstring == NULL) return -1;
+    long long i;
+    for (i = 0; i < length; i++)
     {
         if ((*cstring)[i] >= 'A' && (*cstring)[i] <= 'Z')
             (*cstring)[i] += 'a' - 'A';
     }
-    return 1;
+    return i;
 }
 
-int cu_string_to_lowercase(cu_string *string)
+long long cu_string_to_lowercase(cu_string *string)
 {
-    if (string == NULL) return 0;
-    int result = cu_cstring_to_lowercase(&string->data, string->length);
+    if (string == NULL) return -1;
+    long long result = cu_cstring_to_lowercase(&string->data, string->length);
     return result;
 }
 
 char* cu_cstring_to_lowercase_copy(char *cstring, long long length)
 {
-    int result = cu_cstring_to_lowercase(&cstring, length);
-    if (result == 0) return NULL;
+    long long result = cu_cstring_to_lowercase(&cstring, length);
+    if (result < 0) return NULL;
     char *cstring_copy = cu_cstring_copy(cstring, length);
     return cstring_copy;
 }
@@ -182,11 +185,11 @@ char* cu_cstring_to_lowercase_copy(char *cstring, long long length)
 cu_string cu_string_to_lowercase_copy(cu_string string)
 {
     cu_string string_copy;
-    int result = cu_string_to_lowercase(&string);
-    if (result == 0)
+    long long result = cu_string_to_lowercase(&string);
+    if (result < 0)
     {
         string_copy.data = NULL;
-        string_copy.length = 0;
+        string_copy.length = -1;
     }
     else
     {
@@ -196,9 +199,9 @@ cu_string cu_string_to_lowercase_copy(cu_string string)
     return string_copy;
 }
 
-int cu_cstring_is_lowercase(const char *cstring, long long length)
+long long cu_cstring_is_lowercase(const char *cstring, long long length)
 {
-    if (cstring == NULL) return 0;
+    if (cstring == NULL) return -1;
     long long i;
     for (i = 0; i < length; i++)
     {
@@ -207,32 +210,34 @@ int cu_cstring_is_lowercase(const char *cstring, long long length)
     return i == length;
 }
 
-int cu_string_is_lowercase(cu_string string)
+long long cu_string_is_lowercase(cu_string string)
 {
-    return cu_cstring_is_lowercase(string.data, string.length);
+    long long result = cu_cstring_is_lowercase(string.data, string.length);
+    return result;
 }
 
-int cu_cstring_to_uppercase(char **cstring, long long length)
+long long cu_cstring_to_uppercase(char **cstring, long long length)
 {
-    if (cstring == NULL) return 0;
-    for (long long i = 0; i < length; i++)
+    if (cstring == NULL) return -1;
+    long long i;
+    for (i = 0; i < length; i++)
     {
         if ((*cstring)[i] >= 'a' && (*cstring)[i] <= 'z')
             (*cstring)[i] -= 'a' - 'A';
     }
-    return 1;
+    return i;
 }
 
-int cu_string_to_uppercase(cu_string *string)
+long long cu_string_to_uppercase(cu_string *string)
 {
-    if (string == NULL) return 0;
-    int result = cu_cstring_to_uppercase(&string->data, string->length);
+    if (string == NULL) return -1;
+    long long result = cu_cstring_to_uppercase(&string->data, string->length);
     return result;
 }
 
 char* cu_cstring_to_uppercase_copy(char *cstring, long long length)
 {
-    int result = cu_cstring_to_uppercase(&cstring, length);
+    long long result = cu_cstring_to_uppercase(&cstring, length);
     if (result < 0) return NULL;
     char *cstring_copy = cu_cstring_copy(cstring, length);
     return cstring_copy;
@@ -241,11 +246,11 @@ char* cu_cstring_to_uppercase_copy(char *cstring, long long length)
 cu_string cu_string_to_uppercase_copy(cu_string string)
 {
     cu_string string_copy;
-    int result = cu_string_to_uppercase(&string);
-    if (result == 0)
+    long long result = cu_string_to_uppercase(&string);
+    if (result < 0)
     {
         string_copy.data = NULL;
-        string_copy.length = 0;
+        string_copy.length = -1;
     }
     else
     {
@@ -255,9 +260,9 @@ cu_string cu_string_to_uppercase_copy(cu_string string)
     return string_copy;
 }
 
-int cu_cstring_is_uppercase(const char *cstring, long long length)
+long long cu_cstring_is_uppercase(const char *cstring, long long length)
 {
-    if (cstring == NULL) return 0;
+    if (cstring == NULL) return -1;
     long long i;
     for (i = 0; i < length; i++)
     {
@@ -266,9 +271,30 @@ int cu_cstring_is_uppercase(const char *cstring, long long length)
     return i == length;
 }
 
-int cu_string_is_uppercase(cu_string string)
+long long cu_string_is_uppercase(cu_string string)
 {
-    int result = cu_cstring_is_uppercase(string.data, string.length);
+    long long result = cu_cstring_is_uppercase(string.data, string.length);
+    return result;
+}
+
+int cu_cstring_compare(const char *cstring_1, const char *cstring_2, long long length)
+{
+    if (cstring_1 == NULL && cstring_2 == NULL) return 0;
+    if (cstring_1 == NULL) return -1;
+    if (cstring_2 == NULL) return 1;
+    for (long long i = 0; i < length; i++)
+    {
+        unsigned char char_1 = (unsigned char)cstring_1[i];
+        unsigned char char_2 = (unsigned char)cstring_2[i];
+        if (char_1 != char_2) return char_1 - char_2;
+        if (char_1 == 0) return 0;
+    }
+    return 0;
+}
+
+int cu_string_compare(const cu_string string_1, const cu_string string_2, long long length)
+{
+    int result = cu_cstring_compare(string_1.data, string_2.data, length);
     return result;
 }
 
