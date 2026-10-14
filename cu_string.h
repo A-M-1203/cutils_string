@@ -16,13 +16,13 @@ CU_INTERNAL char*     cu_cstring_copy             (const char      *cstring,   l
 CU_INTERNAL cu_string cu_string_allocate          (const char      *cstring,   long long       length);
 CU_INTERNAL void      cu_string_free              (      cu_string *string);
 CU_INTERNAL long long cu_string_set_data          (      cu_string *string,    const char     *new_data,       long long   new_data_length);
-CU_INTERNAL char*     cu_string_get_data          (      cu_string  string);
-CU_INTERNAL char*     cu_string_copy_data         (      cu_string  string);
+CU_INTERNAL char*     cu_string_get_data          (const cu_string  string);
+CU_INTERNAL char*     cu_string_copy_data         (const cu_string  string);
 CU_INTERNAL cu_string cu_string_copy              (const cu_string  string);
 CU_INTERNAL long long cu_string_index_of          (const cu_string  string,    const cu_string substring);
 CU_INTERNAL cu_string cu_string_substring         (const cu_string  string,    long long       start_index,    long long   substring_length);
-CU_INTERNAL char*     cu_cstring_substring        (const char      *cstring,   long long       cstring_length, long long   start_index,      long long csubstring_length);
-CU_INTERNAL long long cu_cstring_index_of         (const char      *string,    long long       string_length,  const char *substring,        long long substring_length);
+CU_INTERNAL char*     cu_cstring_substring        (const char      *cstring,   long long       cstring_length, long long   start_index,      long long  csubstring_length);
+CU_INTERNAL long long cu_cstring_index_of         (const char      *string,    long long       string_length,  const char *substring,        long long  substring_length);
 CU_INTERNAL int       cu_cstring_compare          (const char      *cstring_1, const char     *cstring_2,      long long   length);
 CU_INTERNAL long long cu_cstring_is_lowercase     (const char      *cstring,   long long       length);
 CU_INTERNAL long long cu_cstring_is_uppercase     (const char      *cstring,   long long       length);
@@ -37,6 +37,18 @@ CU_INTERNAL long long cu_string_to_lowercase      (      cu_string *string);
 CU_INTERNAL long long cu_string_to_uppercase      (      cu_string *string);
 CU_INTERNAL cu_string cu_string_to_lowercase_copy (      cu_string  string);
 CU_INTERNAL cu_string cu_string_to_uppercase_copy (      cu_string  string);
+CU_INTERNAL long long cu_cstring_trim_start       (      char      *cstring,   long long       length,         char        trim_character);
+CU_INTERNAL long long cu_cstring_trim_end         (      char      *cstring,   long long       length,         char        trim_character);
+CU_INTERNAL long long cu_cstring_trim             (      char      *cstring,   long long       length,         char        trim_character);
+CU_INTERNAL char*     cu_cstring_trim_start_copy  (const char      *cstring,   long long       length,         char        trim_character,   long long *trimed_cstring_length);
+CU_INTERNAL char*     cu_cstring_trim_end_copy    (const char      *cstring,   long long       length,         char        trim_character,   long long *trimed_cstring_length);
+CU_INTERNAL char*     cu_cstring_trim_copy        (const char      *cstring,   long long       length,         char        trim_character,   long long *trimed_cstring_length);
+CU_INTERNAL long long cu_string_trim_start        (cu_string       *string,    char            trim_character);
+CU_INTERNAL long long cu_string_trim_end          (cu_string       *string,    char            trim_character);
+CU_INTERNAL long long cu_string_trim              (cu_string       *string,    char            trim_character);
+CU_INTERNAL cu_string cu_string_trim_start_copy   (cu_string        string,    char            trim_character);
+CU_INTERNAL cu_string cu_string_trim_end_copy     (cu_string        string,    char            trim_character);
+CU_INTERNAL cu_string cu_string_trim_copy         (cu_string        string,    char            trim_character);
 
 #define CU_STRING_IMPLEMENTATION
 #ifdef CU_STRING_IMPLEMENTATION
@@ -63,6 +75,12 @@ char* cu_cstring_copy(const char* cstring, long long length)
     return cstring_copy;
 }
 
+cu_string cu_string_copy(const cu_string string)
+{
+    cu_string string_copy = cu_string_allocate(string.data, string.length);
+    return string_copy;
+}
+
 cu_string cu_string_allocate(const char* cstring, long long length)
 {
     cu_string new_string;
@@ -78,12 +96,6 @@ void cu_string_free(cu_string *string)
     string->length = 0;
 }
 
-cu_string cu_string_copy(const cu_string string)
-{
-    cu_string string_copy = cu_string_allocate(string.data, string.length);
-    return string_copy;
-}
-
 long long cu_string_set_data(cu_string *string, const char *new_data, long long new_data_length)
 {
     if (string == NULL) return 0;
@@ -93,12 +105,12 @@ long long cu_string_set_data(cu_string *string, const char *new_data, long long 
     return new_data_length;
 }
 
-char* cu_string_get_data(cu_string string)
+char* cu_string_get_data(const cu_string string)
 {
     return string.data;
 }
 
-char* cu_string_copy_data(cu_string string)
+char* cu_string_copy_data(const cu_string string)
 {
     char* data_copy = cu_cstring_copy(string.data, string.length);
     return data_copy;
@@ -139,6 +151,83 @@ char* cu_cstring_substring(const char *cstring, long long cstring_length, long l
     return csubstring;
 }
 
+long long cu_cstring_to_lowercase(char **cstring, long long length)
+{
+    if (cstring == NULL) return -1;
+    long long i;
+    for (i = 0; i < length; i++)
+    {
+        if ((*cstring)[i] >= 'A' && (*cstring)[i] <= 'Z')
+            (*cstring)[i] += 'a' - 'A';
+    }
+    return i;
+}
+
+char* cu_cstring_to_lowercase_copy(char *cstring, long long length)
+{
+    long long result = cu_cstring_to_lowercase(&cstring, length);
+    if (result < 0) return NULL;
+    char *cstring_copy = cu_cstring_copy(cstring, length);
+    return cstring_copy;
+}
+
+long long cu_cstring_is_lowercase(const char *cstring, long long length)
+{
+    if (cstring == NULL) return -1;
+    long long i;
+    for (i = 0; i < length; i++)
+    {
+        if (cstring[i] >= 'A' && cstring[i] <= 'Z') break;
+    }
+    return i == length;
+}
+
+long long cu_cstring_to_uppercase(char **cstring, long long length)
+{
+    if (cstring == NULL) return -1;
+    long long i;
+    for (i = 0; i < length; i++)
+    {
+        if ((*cstring)[i] >= 'a' && (*cstring)[i] <= 'z')
+            (*cstring)[i] -= 'a' - 'A';
+    }
+    return i;
+}
+
+char* cu_cstring_to_uppercase_copy(char *cstring, long long length)
+{
+    long long result = cu_cstring_to_uppercase(&cstring, length);
+    if (result < 0) return NULL;
+    char *cstring_copy = cu_cstring_copy(cstring, length);
+    return cstring_copy;
+}
+
+long long cu_cstring_is_uppercase(const char *cstring, long long length)
+{
+    if (cstring == NULL) return -1;
+    long long i;
+    for (i = 0; i < length; i++)
+    {
+        if (cstring[i] >= 'a' && cstring[i] <= 'z') break;
+    }
+    return i == length;
+}
+
+int cu_cstring_compare(const char *cstring_1, const char *cstring_2, long long length)
+{
+    if (cstring_1 == NULL && cstring_2 == NULL) return 0;
+    if (cstring_1 == NULL) return -1;
+    if (cstring_2 == NULL) return 1;
+    for (long long i = 0; i < length; i++)
+    {
+        unsigned char char_1 = (unsigned char)cstring_1[i];
+        unsigned char char_2 = (unsigned char)cstring_2[i];
+        if (char_1 != char_2) return char_1 - char_2;
+        if (char_1 == 0) return 0;
+    }
+    return 0;
+}
+
 cu_string cu_string_substring(const cu_string string, long long start_index, long long substring_length)
 {
     cu_string substring;
@@ -155,31 +244,11 @@ cu_string cu_string_substring(const cu_string string, long long start_index, lon
     return substring;
 }
 
-long long cu_cstring_to_lowercase(char **cstring, long long length)
-{
-    if (cstring == NULL) return -1;
-    long long i;
-    for (i = 0; i < length; i++)
-    {
-        if ((*cstring)[i] >= 'A' && (*cstring)[i] <= 'Z')
-            (*cstring)[i] += 'a' - 'A';
-    }
-    return i;
-}
-
 long long cu_string_to_lowercase(cu_string *string)
 {
     if (string == NULL) return -1;
     long long result = cu_cstring_to_lowercase(&string->data, string->length);
     return result;
-}
-
-char* cu_cstring_to_lowercase_copy(char *cstring, long long length)
-{
-    long long result = cu_cstring_to_lowercase(&cstring, length);
-    if (result < 0) return NULL;
-    char *cstring_copy = cu_cstring_copy(cstring, length);
-    return cstring_copy;
 }
 
 cu_string cu_string_to_lowercase_copy(cu_string string)
@@ -199,33 +268,10 @@ cu_string cu_string_to_lowercase_copy(cu_string string)
     return string_copy;
 }
 
-long long cu_cstring_is_lowercase(const char *cstring, long long length)
-{
-    if (cstring == NULL) return -1;
-    long long i;
-    for (i = 0; i < length; i++)
-    {
-        if (cstring[i] >= 'A' && cstring[i] <= 'Z') break;
-    }
-    return i == length;
-}
-
 long long cu_string_is_lowercase(cu_string string)
 {
     long long result = cu_cstring_is_lowercase(string.data, string.length);
     return result;
-}
-
-long long cu_cstring_to_uppercase(char **cstring, long long length)
-{
-    if (cstring == NULL) return -1;
-    long long i;
-    for (i = 0; i < length; i++)
-    {
-        if ((*cstring)[i] >= 'a' && (*cstring)[i] <= 'z')
-            (*cstring)[i] -= 'a' - 'A';
-    }
-    return i;
 }
 
 long long cu_string_to_uppercase(cu_string *string)
@@ -233,14 +279,6 @@ long long cu_string_to_uppercase(cu_string *string)
     if (string == NULL) return -1;
     long long result = cu_cstring_to_uppercase(&string->data, string->length);
     return result;
-}
-
-char* cu_cstring_to_uppercase_copy(char *cstring, long long length)
-{
-    long long result = cu_cstring_to_uppercase(&cstring, length);
-    if (result < 0) return NULL;
-    char *cstring_copy = cu_cstring_copy(cstring, length);
-    return cstring_copy;
 }
 
 cu_string cu_string_to_uppercase_copy(cu_string string)
@@ -260,42 +298,124 @@ cu_string cu_string_to_uppercase_copy(cu_string string)
     return string_copy;
 }
 
-long long cu_cstring_is_uppercase(const char *cstring, long long length)
-{
-    if (cstring == NULL) return -1;
-    long long i;
-    for (i = 0; i < length; i++)
-    {
-        if (cstring[i] >= 'a' && cstring[i] <= 'z') break;
-    }
-    return i == length;
-}
-
 long long cu_string_is_uppercase(cu_string string)
 {
     long long result = cu_cstring_is_uppercase(string.data, string.length);
     return result;
 }
 
-int cu_cstring_compare(const char *cstring_1, const char *cstring_2, long long length)
-{
-    if (cstring_1 == NULL && cstring_2 == NULL) return 0;
-    if (cstring_1 == NULL) return -1;
-    if (cstring_2 == NULL) return 1;
-    for (long long i = 0; i < length; i++)
-    {
-        unsigned char char_1 = (unsigned char)cstring_1[i];
-        unsigned char char_2 = (unsigned char)cstring_2[i];
-        if (char_1 != char_2) return char_1 - char_2;
-        if (char_1 == 0) return 0;
-    }
-    return 0;
-}
-
 int cu_string_compare(const cu_string string_1, const cu_string string_2, long long length)
 {
     int result = cu_cstring_compare(string_1.data, string_2.data, length);
     return result;
+}
+
+long long cu_cstring_trim_start(char *cstring, long long length, char trim_character)
+{
+    if (cstring == NULL || length <= 0) return -1;
+
+    long long trim_count = 0;
+    while (trim_count < length && cstring[trim_count] == trim_character)
+    {
+        trim_count++;
+    }
+
+    if (trim_count == 0) return length;
+
+    long long new_length = length - trim_count;
+    for (long long i = 0; i < new_length; i++)
+    {
+        cstring[i] = cstring[i + trim_count];
+    }
+    cstring[new_length] = 0;
+    return new_length;
+}
+
+long long cu_cstring_trim_end(char *cstring, long long length, char trim_character)
+{
+    if (cstring == NULL || length <= 0) return -1;
+
+    long long i = length - 1;
+    long long trim_count = 0;
+    while (i >= 0 && cstring[i] == trim_character)
+    {
+        i--;
+        trim_count++;
+    }
+
+    long long new_length = length - trim_count;
+    cstring[new_length] = 0;
+    return new_length;
+}
+
+long long cu_cstring_trim(char *cstring, long long length, char trim_character)
+{
+    long long new_length_1 = cu_cstring_trim_start(cstring, length, trim_character);
+    long long new_length_2 = cu_cstring_trim_end(cstring, new_length_1, trim_character);
+    return new_length_2;
+}
+
+char* cu_cstring_trim_start_copy(const char *cstring, long long length, char trim_character, long long *trimed_cstring_length)
+{
+    char *cstring_copy = cu_cstring_copy(cstring, length);
+    *trimed_cstring_length = cu_cstring_trim_start(cstring_copy, length, trim_character);
+    return cstring_copy;
+}
+
+char* cu_cstring_trim_end_copy(const char *cstring, long long length, char trim_character, long long *trimed_cstring_length)
+{
+    char *cstring_copy = cu_cstring_copy(cstring, length);
+    *trimed_cstring_length = cu_cstring_trim_end(cstring_copy, length, trim_character);
+    return cstring_copy;
+}
+
+char* cu_cstring_trim_copy(const char *cstring, long long length, char trim_character, long long *trimed_cstring_length)
+{
+    char *cstring_copy = cu_cstring_trim_start_copy(cstring, length, trim_character, trimed_cstring_length);
+    *trimed_cstring_length = cu_cstring_trim_end(cstring_copy, *trimed_cstring_length, trim_character);
+    return cstring_copy;
+}
+
+long long cu_string_trim_start(cu_string *string, char trim_character)
+{
+    long long new_length = cu_cstring_trim_start(string->data, string->length, trim_character);
+    string->length = new_length;
+    return new_length;
+}
+
+long long cu_string_trim_end(cu_string *string, char trim_character)
+{
+    long long new_length = cu_cstring_trim_end(string->data, string->length, trim_character);
+    string->length = new_length;
+    return new_length;
+}
+
+long long cu_string_trim(cu_string *string, char trim_character)
+{
+    cu_string_trim_start(string, trim_character);
+    long long new_length_2 = cu_string_trim_end(string, trim_character);
+    return new_length_2;
+}
+
+cu_string cu_string_trim_start_copy(cu_string string, char trim_character)
+{
+    cu_string string_copy = cu_string_copy(string);
+    cu_string_trim_start(&string_copy, trim_character);
+    return string_copy;
+}
+
+cu_string cu_string_trim_end_copy(cu_string string, char trim_character)
+{
+    cu_string string_copy = cu_string_copy(string);
+    cu_string_trim_end(&string_copy, trim_character);
+    return string_copy;
+}
+
+cu_string cu_string_trim_copy(cu_string string, char trim_character)
+{
+    cu_string string_copy = cu_string_trim_start_copy(string, trim_character);
+    cu_string_trim_end(&string_copy, trim_character);
+    return string_copy;
 }
 
 #endif // CU_STRING_IMPLEMENTATION

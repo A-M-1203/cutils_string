@@ -3,8 +3,11 @@
 
 int main()
 {
-    const char *cstring_1 = "abgd";
-    const char *cstring_2 = "abed";
-    int result = cu_cstring_compare(cstring_1, cstring_2, 3);
-    printf("%d\n", result);
+    const char *cstring = "abcdTTT";
+    long long cstring_length = cu_cstring_length(cstring);
+    cu_string string = cu_string_allocate(cstring, cstring_length);
+
+    cu_string string_copy = cu_string_trim_copy(string, 'T');
+    printf("%s\n", string_copy.data);
+    printf("%lld\n", string_copy.length);
 }
