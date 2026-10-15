@@ -3,11 +3,15 @@
 
 int main()
 {
-    const char *cstring = "abcdTTT";
+    const char *cstring = ",a,b,c,";
     long long cstring_length = cu_cstring_length(cstring);
-    cu_string string = cu_string_allocate(cstring, cstring_length);
 
-    cu_string string_copy = cu_string_trim_copy(string, 'T');
-    printf("%s\n", string_copy.data);
-    printf("%lld\n", string_copy.length);
+    long long result_length = 0;
+    char **split_cstrings = cu_cstring_split(cstring, cstring_length, ",", 1, &result_length);
+    for (long long i = 0; i < result_length; i++)
+    {
+        printf("%s ", split_cstrings[i]);
+    }
+    printf("\n");
+    printf("%s\n", cstring);
 }
