@@ -50,8 +50,8 @@ CU_INTERNAL long long  cu_string_trim              (cu_string       *string,    
 CU_INTERNAL cu_string  cu_string_trim_start_copy   (cu_string        string,    char            trim_character);    
 CU_INTERNAL cu_string  cu_string_trim_end_copy     (cu_string        string,    char            trim_character);    
 CU_INTERNAL cu_string  cu_string_trim_copy         (cu_string        string,    char            trim_character);    
-CU_INTERNAL char**     cu_cstring_split            (const char      *cstring,   long long       length,          const char *split_by_cstring,    long long  split_by_cstring_length, long long *split_result_length);
-CU_INTERNAL cu_string* cu_string_split             (cu_string        string,    cu_string       split_by_string, long long  *split_result_length);
+CU_INTERNAL char**     cu_cstring_split_copy       (const char      *cstring,   long long       length,          const char *split_by_cstring,    long long  split_by_cstring_length, long long *split_result_length);
+CU_INTERNAL cu_string* cu_string_split_copy        (cu_string        string,    cu_string       split_by_string, long long  *split_result_length);
 
 #define CU_STRING_IMPLEMENTATION
 #ifdef CU_STRING_IMPLEMENTATION
@@ -465,14 +465,10 @@ cu_string cu_string_trim_copy(cu_string string, char trim_character)
     return string_copy;
 }
 
-char** cu_cstring_split(const char *cstring, long long length, const char *split_by_cstring, long long split_by_cstring_length, long long *split_result_length)
+char** cu_cstring_split_copy(const char *cstring, long long length, const char *split_by_cstring, long long split_by_cstring_length, long long *split_result_length)
 {
     if (split_result_length == NULL) return NULL;
     *split_result_length = 0;
-    if (cstring == NULL || length <= 0 || split_by_cstring == NULL || split_by_cstring_length <= 0)
-    {
-        return NULL;
-    }
 
     long long capacity = 10;
     long long size = 0;
@@ -517,9 +513,9 @@ cu_allocation_failed:
     return NULL;
 }
 
-cu_string* cu_string_split(cu_string string, cu_string split_by_string, long long *split_result_length)
+cu_string* cu_string_split_copy(cu_string string, cu_string split_by_string, long long *split_result_length)
 {
-    char **cstring_split_result = cu_cstring_split(string.data, string.length, split_by_string.data, split_by_string.length, split_result_length);
+    char **cstring_split_result = cu_cstring_split_copy(string.data, string.length, split_by_string.data, split_by_string.length, split_result_length);
     if (cstring_split_result == NULL) return NULL;
 
     long long count = *split_result_length;
