@@ -3,15 +3,11 @@
 
 int main()
 {
-    const char *cstring = ",a,b,c,";
-    long long cstring_length = cu_cstring_length(cstring);
-
-    long long result_length = 0;
-    char **split_cstrings = cu_cstring_split_copy(cstring, cstring_length, ",", 1, &result_length);
-    for (long long i = 0; i < result_length; i++)
-    {
-        printf("%s ", split_cstrings[i]);
-    }
-    printf("\n");
-    printf("%s\n", cstring);
+    const char *cstrings[3] = {"ab", "abc", "abcd"};
+    long long cstrings_lengths[3] = {2, 3, 4};
+    const char *join_by_cstring = " ";
+    long long join_result_length = 0;
+    char *join_result = cu_cstring_join_copy(cstrings, cstrings_lengths, 3, join_by_cstring, 1, &join_result_length);
+    printf("%s\n", join_result);
+    printf("%lld\n", join_result_length);
 }

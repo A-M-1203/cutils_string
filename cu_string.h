@@ -15,15 +15,16 @@ CU_INTERNAL long long  cu_cstring_length           (const char      *cstring);
 CU_INTERNAL char*      cu_cstring_copy             (const char      *cstring,   long long       length);
 CU_INTERNAL cu_string  cu_string_allocate          (const char      *cstring,   long long       length);
 CU_INTERNAL void       cu_string_free              (      cu_string *string);
-CU_INTERNAL long long  cu_string_set_data          (      cu_string *string,    const char     *new_data,        long long   new_data_length);
-CU_INTERNAL long long  cu_string_set_data_copy     (      cu_string *string,    const char     *new_data,        long long   new_data_length);
+CU_INTERNAL long long  cu_cstring_set_data         (char           **cstring,   const char     *data,            long long   data_length);
+CU_INTERNAL long long  cu_string_set_data          (      cu_string *string,    const char     *data,            long long   data_length);
+CU_INTERNAL long long  cu_string_set_data_copy     (      cu_string *string,    const char     *data,            long long   data_length);
 CU_INTERNAL char*      cu_string_get_data          (const cu_string  string); 
 CU_INTERNAL char*      cu_string_get_data_copy     (const cu_string  string); 
 CU_INTERNAL cu_string  cu_string_copy              (const cu_string  string); 
 CU_INTERNAL long long  cu_string_index_of          (const cu_string  string,    const cu_string substring); 
 CU_INTERNAL cu_string  cu_string_substring         (const cu_string  string,    long long       start_index,     long long   substring_length);
 CU_INTERNAL char*      cu_cstring_substring        (const char      *cstring,   long long       cstring_length,  long long   start_index,         long long  csubstring_length);
-CU_INTERNAL long long  cu_cstring_index_of         (const char      *string,    long long       string_length,   const char *substring,           long long  substring_length);
+CU_INTERNAL long long  cu_cstring_index_of         (const char      *cstring,   long long      cstring_length,   const char *csubstring,          long long  csubstring_length);
 CU_INTERNAL int        cu_cstring_compare          (const char      *cstring_1, const char     *cstring_2,       long long   length);   
 CU_INTERNAL long long  cu_cstring_is_lowercase     (const char      *cstring,   long long       length);    
 CU_INTERNAL long long  cu_cstring_is_uppercase     (const char      *cstring,   long long       length);    
@@ -104,6 +105,25 @@ void cu_string_free(cu_string *string)
     free(string->data);
     string->data = NULL;
     string->length = 0;
+}
+
+long long cu_cstring_set_data(char **cstring, const char *data, long long data_length)
+{
+    if (cstring == NULL || data_length <= 0 || data == NULL) return 0;
+    if (*cstring == NULL)
+    {
+        *cstring = (char*)malloc(data_length * sizeof(char) + 1);
+        if (*cstring == NULL) return 0;
+    }
+
+    long long i;
+    for (i = 0; i < data_length; i++)
+    {
+        (*cstring)[i] = data[i];
+    }
+    (*cstring)[data_length] = 0;
+
+    return i;
 }
 
 long long cu_string_set_data(cu_string *string, const char *new_data, long long new_data_length)
@@ -539,6 +559,99 @@ cu_string* cu_string_split_copy(cu_string string, cu_string split_by_string, lon
 
     free(cstring_split_result);
     return split_result;
+}
+
+char* cu_cstring_join_copy(const char *const *cstrings, const long long *cstrings_lengths, long long cstrings_lengths_length, const char *join_by_cstring, long long join_by_cstring_length, long long *join_result_length)
+{
+    if (join_result_length == NULL) return NULL;
+    *join_result_length = 0;
+    if (cstrings == NULL || cstrings_lengths == NULL) return NULL;
+    if (join_by_cstring == NULL || join_by_cstring_length < 0)
+    {
+        join_by_cstring_length = 0;
+    }
+
+    long long result_length = 0;
+    if (cstrings_lengths_length > 1)
+    {
+        result_length = join_by_cstring_length * (cstrings_lengths_length - 1);
+    }
+
+    for (long long i = 0; i < cstrings_lengths_length; i++)
+    {
+        if (cstrings_lengths[i] < 0 || (cstrings_lengths[i] > 0 && cstrings[i] == NULL)) return NULL;
+        result_length += cstrings_lengths[i];
+    }
+
+    char *join_result_tmp = (char*)malloc(result_length * sizeof(char) + 1);
+    if (join_result_tmp == NULL) return NULL;
+
+    char *join_result = join_result_tmp;
+    long long copied_characters;
+    for (long long i = 0; i < cstrings_lengths_length; i++)
+    {
+        if (i > 0)
+        {
+            
+            copied_characters = cu_cstring_set_data(&join_result_tmp, join_by_cstring, join_by_cstring_length);
+            join_result_tmp += copied_characters;
+        }
+
+        if (cstrings_lengths[i] > 0)
+        {
+            copied_characters = cu_cstring_set_data(&join_result_tmp, cstrings[i], cstrings_lengths[i]);
+            join_result_tmp += copied_characters;
+        }
+    }
+    *join_result_tmp = 0;
+
+    *join_result_length = result_length;
+    return join_result;
+}
+
+cu_string cu_string_join_copy(const cu_string *strings, long long strings_length, cu_string join_by_string)
+{
+    cu_string empty_string = { .data = NULL, .length = 0 };
+    if (strings == NULL || strings_length <= 0) return empty_string;
+    if (join_by_string.length < 0 || join_by_string.data == NULL)
+    {
+        join_by_string.length = 0;
+    }
+
+    long long result_length = 0;
+    if (strings_length > 1)
+    {
+        result_length = join_by_string.length * (strings_length - 1);
+    }
+
+    for (long long i = 0; i < strings_length; i++)
+    {
+        if (strings[i].length < 0 || (strings[i].length > 0 && strings[i].data == NULL)) return empty_string;
+        result_length += strings[i].length;
+    }
+
+    char *join_result_tmp = (char*)malloc(result_length * sizeof(char) + 1);
+    if (join_result_tmp == NULL) return empty_string;
+
+    char *join_result = join_result_tmp;
+    long long copied_characters;
+    for (long long i = 0; i < strings_length; i++)
+    {
+        if (i > 0)
+        {
+            copied_characters = cu_cstring_set_data(&join_result_tmp, join_by_string.data, join_by_string.length);
+            join_result_tmp += copied_characters;
+        }
+
+        if (strings[i].length > 0)
+        {
+            copied_characters = cu_cstring_set_data(&join_result_tmp, strings[i].data, strings[i].length);
+            join_result_tmp += copied_characters;
+        }
+    }
+    *join_result_tmp = 0;
+
+    return (cu_string) { .data = join_result, .length = result_length };
 }
 
 #endif // CU_STRING_IMPLEMENTATION
